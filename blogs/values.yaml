@@ -1,0 +1,44 @@
+# Default values for the Marketing Digest blogs chart.
+# Environment-specific overrides belong in md-helm-values — not here.
+#
+# Secrets must never be stored in this file. Reference existing
+# Kubernetes Secrets via env[].valueFrom or envFrom[].secretRef.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: blog-service
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+# ClusterIP services use 50051 (same port number as auth; distinct Service DNS).
+# Application process port is set via GRPC_PORT when overridden in env values.
+containerPort: 50051
+
+service:
+  type: ClusterIP
+  port: 50051
+  targetPort: 50051
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Optional. Empty = omit probes from the Deployment.
+livenessProbe: {}
+readinessProbe: {}
+
+# Align process listen port with containerPort (app local .env may still use 50052 on the host).
+env:
+  - name: GRPC_PORT
+    value: "50051"
+
+# Optional envFrom (configMapRef / secretRef). Do not embed secret data.
+envFrom: []
