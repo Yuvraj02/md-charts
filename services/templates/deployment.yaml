@@ -1,0 +1,51 @@
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+{{- $cfg := include "services.mergeConfig" (dict "defaults" $.Values.defaults "service" $svc) | fromYaml }}
+{{- $ctx := dict "root" $ "name" $name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "services.componentFullname" $ctx }}
+  labels:
+    {{- include "services.componentLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ $cfg.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "services.componentSelectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "services.componentSelectorLabels" $ctx | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: "{{ $cfg.image.repository }}:{{ $cfg.image.tag }}"
+          imagePullPolicy: {{ $cfg.image.pullPolicy }}
+          ports:
+            - name: app
+              containerPort: {{ $cfg.containerPort }}
+              protocol: TCP
+          {{- with $cfg.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $cfg.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $cfg.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if and $cfg.livenessProbe (gt (len $cfg.livenessProbe) 0) }}
+          livenessProbe:
+            {{- toYaml $cfg.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if and $cfg.readinessProbe (gt (len $cfg.readinessProbe) 0) }}
+          readinessProbe:
+            {{- toYaml $cfg.readinessProbe | nindent 12 }}
+          {{- end }}
+{{- end }}
+{{- end }}

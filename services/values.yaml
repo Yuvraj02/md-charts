@@ -1,0 +1,63 @@
+# Default values for the Marketing Digest services chart.
+# Environment-specific overrides belong in md-helm-values — not here.
+#
+# Secrets must never be stored in this file. Reference existing
+# Kubernetes Secrets via env[].valueFrom or envFrom[].secretRef.
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Shared defaults merged under each entry in `services` unless overridden.
+defaults:
+  replicaCount: 1
+  image:
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  # Optional. Omit or leave empty to skip probes.
+  # Example HTTP probe:
+  # livenessProbe:
+  #   httpGet:
+  #     path: /healthz
+  #     port: http
+  #   initialDelaySeconds: 10
+  #   periodSeconds: 10
+  livenessProbe: {}
+  readinessProbe: {}
+  # Non-sensitive env vars as a list of container env entries.
+  # Sensitive values: use valueFrom.secretKeyRef (Secret must already exist).
+  env: []
+  # Optional envFrom entries (configMapRef / secretRef). Do not embed secret data.
+  envFrom: []
+
+# Per-service definitions. Add another key later to introduce a new backend.
+services:
+  auth:
+    enabled: true
+    image:
+      repository: auth-service
+      tag: "0.1.0"
+      # pullPolicy inherits from defaults unless set here
+    containerPort: 50051
+    service:
+      # type inherits ClusterIP from defaults unless set here
+      port: 50051
+      targetPort: 50051
+    # replicaCount / resources / env / probes inherit from defaults unless set
+
+  blogs:
+    enabled: true
+    image:
+      repository: blog-service
+      tag: "0.1.0"
+    containerPort: 50052
+    service:
+      port: 50052
+      targetPort: 50052

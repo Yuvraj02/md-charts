@@ -1,0 +1,48 @@
+# Default values for the Marketing Digest gateway chart.
+# Environment-specific overrides belong in md-helm-values — not here.
+#
+# Secrets must never be stored in this file. Reference existing
+# Kubernetes Secrets via env[].valueFrom or envFrom[].secretRef.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: gateway
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Optional. Omit or leave empty to skip probes.
+# Example:
+# livenessProbe:
+#   httpGet:
+#     path: /healthz
+#     port: http
+#   initialDelaySeconds: 5
+#   periodSeconds: 10
+livenessProbe: {}
+readinessProbe: {}
+
+# Non-sensitive env vars as a list of container env entries.
+# Sensitive values: use valueFrom.secretKeyRef (Secret must already exist).
+env: []
+
+# Optional envFrom entries (configMapRef / secretRef). Do not embed secret data.
+envFrom: []
