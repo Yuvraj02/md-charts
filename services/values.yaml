@@ -57,7 +57,12 @@ services:
     image:
       repository: blog-service
       tag: "0.1.0"
-    containerPort: 50052
+    # Same container/Service port as auth — each ClusterIP Service is a
+    # separate DNS name, so both can use 50051 behind the gateway.
+    containerPort: 50051
     service:
-      port: 50052
-      targetPort: 50052
+      port: 50051
+      targetPort: 50051
+    env:
+      - name: GRPC_PORT
+        value: "50051"
